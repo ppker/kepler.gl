@@ -1216,6 +1216,12 @@ export function setFeaturesUpdater(state, {features = []}) {
   }
 }
 
+/**
+ * @memberof visStateUpdaters
+ * @param {Object} state `visState`
+ * @param {string} selectedFeatureId feature to delete
+ * @return {Object} nextState
+ */
 export const deleteFeatureUpdater = (state, {payload: selectedFeatureId}) => {
   return selectedFeatureId ? {
     ...state,
