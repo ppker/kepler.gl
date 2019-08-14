@@ -103,22 +103,27 @@ export const TIME_ANIMATION_SPEED = [
 ];
 
 export function generatePolygonFilter(layer, feature) {
-  return generateFilter({
-    dataId: layer.config.dataId,
-    layerId: layer.id,
-    fixedDomain: false,
-    // We store the geo-json into value field
-    value: feature,
-    type: FILTER_TYPES.polygon
-  });
+  return {
+    ...generateFilter({
+      dataId: layer.config.dataId,
+      fixedDomain: true,
+      // We store the geo-json into value field
+      value: feature,
+      type: FILTER_TYPES.polygon
+    }),
+    // poylgon filter specific
+    polygon: turfPolygon(feature.geometry.coordinates),
+    layerId: layer.id
+  };
 }
 
 export function generateFilter(options) {
-  const filter = getDefaultFilter(options.dataId);
+  const {dataId, ...restOptions} = options;
+  const filter = getDefaultFilter(dataId);
 
   return {
     ...filter,
-    ...options
+    ...restOptions
   };
 }
 
@@ -146,10 +151,7 @@ export function getDefaultFilter(dataId) {
     // plot
     plotType: PLOT_TYPES.histogram,
     yAxis: null,
-    interval: null,
-
-    // polygon:
-    layerId: null
+    interval: null
   };
 }
 
@@ -292,7 +294,7 @@ export function filterData(data, dataId, filters, layers = []) {
 
         // filter data for render
         const matchForRender = fixedDomainFilters.every(filter =>
-          isDataMatchFilter(d, filter, i)
+          isDataMatchFilter(d, filter, i, layers.find(l => l.id === filter.layerId))
         );
 
         if (matchForRender) {

@@ -50,10 +50,10 @@ class Draw extends Component {
     clickRadius: PropTypes.number,
     datasets: PropTypes.object.isRequired,
     editor: PropTypes.object.isRequired,
-    features: PropTypes.arrayOf(PropTypes.object).isRequired,
+    filters: PropTypes.arrayOf(PropTypes.object).isRequired,
     isEnabled: PropTypes.bool,
     layers: PropTypes.arrayOf(PropTypes.object).isRequired,
-    filters: PropTypes.arrayOf(PropTypes.object).isRequired,
+    mode: PropTypes.string.isRequired,
     onSelect: PropTypes.func.isRequired,
     onUpdate: PropTypes.func.isRequired,
     onDeleteFeature: PropTypes.func.isRequired,
@@ -139,7 +139,7 @@ class Draw extends Component {
       clickRadius,
       datasets,
       editor,
-      features,
+      mode,
       layers,
       filters,
       style
@@ -156,8 +156,8 @@ class Draw extends Component {
       >
         <Editor
           clickRadius={clickRadius}
-          mode={editor.mode}
-          features={features}
+          mode={mode}
+          features={editor.features}
           selectedFeatureId={selectedFeatureId}
           onSelect={this._onSelect}
           onUpdate={this.props.onUpdate}

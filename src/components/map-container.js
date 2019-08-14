@@ -395,8 +395,8 @@ export default function MapContainerFactory(MapTooltip, MapControl) {
               */}
               <Draw
                 datasets={datasets}
-                editor={uiState.editor}
-                features={editor.features}
+                editor={editor}
+                mode={uiState.editor.mode}
                 isEnabled={isEdit}
                 layers={layers}
                 filters={this.polygonFilters(this.props)}
