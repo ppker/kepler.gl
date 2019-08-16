@@ -32,7 +32,7 @@ const StyledItem = styled.div`
   font-size: 12px;
   line-height: 14px;
   padding: 8px;
-  height: ${props => props.theme.actionPanelHeight}px;
+  min-height: ${props => props.theme.actionPanelHeight}px;
   text-transform: capitalize;
   background-color: ${props => props.theme.dropdownListBgd};
   width: ${props => props.theme.actionPanelWidth}px;
@@ -72,6 +72,7 @@ const StyledCheckedbox = styled(Checkbox)`
     color: ${props => props.theme.textColor};
     padding-left: 20px;
     line-height: 12px;
+    
     &:before {
       width:  12px;
       height: 12px;
