@@ -77,7 +77,7 @@ class FeatureActionPanel extends PureComponent {
                 color={datasets[layer.config.dataId].color}
                 isSelection={true}
                 isActive={Boolean(filters.find(f =>
-                  f.layerId === layer.id && f.value.id === currentFeature.id
+                  f.layerId === layer.id && f.feature.id === currentFeature.id
                 ))}
                 onClick={() => onToggleLayer(layer)}
               />

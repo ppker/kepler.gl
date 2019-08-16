@@ -29,6 +29,7 @@ import {
 import {Add} from 'components/common/icons';
 import SourceDataCatalogFactory from './source-data-catalog';
 import FilterPanelFactory from './filter-panel/filter-panel';
+import {FILTER_TYPES} from '../../utils/filter-utils';
 
 FilterManagerFactory.deps = [
   SourceDataCatalogFactory,
@@ -58,6 +59,11 @@ function FilterManagerFactory(SourceDataCatalog, FilterPanel) {
       datasets =>
         (Object.keys(datasets).length && Object.keys(datasets)[0]) || null
     );
+    filtersSelector = state => state.filters;
+    filtersPanelSelector = createSelector(
+      this.filtersSelector,
+      filters => filters.filter(f => f.type !== FILTER_TYPES.polygon)
+    );
 
     /* actions */
     _addFilter = () => {
@@ -66,7 +72,8 @@ function FilterManagerFactory(SourceDataCatalog, FilterPanel) {
     };
 
     render() {
-      const {filters, datasets} = this.props;
+      const {datasets} = this.props;
+      const filters = this.filtersPanelSelector(this.props);
       const isAnyFilterAnimating = filters.some(f => f.isAnimating);
       const hadEmptyFilter = filters.some(f => !f.name);
       const hadDataset = Object.keys(datasets).length;

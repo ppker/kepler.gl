@@ -102,21 +102,6 @@ export const TIME_ANIMATION_SPEED = [
   }
 ];
 
-export function generatePolygonFilter(layer, feature) {
-  return {
-    ...generateFilter({
-      dataId: layer.config.dataId,
-      fixedDomain: true,
-      // We store the geo-json into value field
-      value: feature,
-      type: FILTER_TYPES.polygon
-    }),
-    // poylgon filter specific
-    polygon: turfPolygon(feature.geometry.coordinates),
-    layerId: layer.id
-  };
-}
-
 export function generateFilter(options) {
   const {dataId, ...restOptions} = options;
   const filter = getDefaultFilter(dataId);
@@ -154,6 +139,26 @@ export function getDefaultFilter(dataId) {
     interval: null
   };
 }
+
+/* Polygon Filter Helpers */
+export function updatePolygonFilter(filter, feature, layer) {
+  return {
+    ...filter,
+    // We store the geo-json into value field
+    value: turfPolygon(feature.geometry.coordinates),
+    layerId: layer.id,
+    feature
+  }
+}
+
+export function generatePolygonFilter(layer, feature) {
+  return updatePolygonFilter({
+    ...getDefaultFilter(layer.config.dataId),
+    fixedDomain: true,
+    type: FILTER_TYPES.polygon
+  }, feature, layer);
+}
+/* Polygon Filter Helpers */
 
 /**
  * Get default filter prop based on field type
@@ -342,9 +347,12 @@ export function isDataMatchFilter(data, filter, i, layer = null) {
       return filter.value === val;
 
     case FILTER_TYPES.polygon:
+      if (!(layer && layer.config)) {
+        return true;
+      }
       const {lat, lng} = layer.config.columns;
-      const feature = [data[lng.fieldIdx], data[lat.fieldIdx]];
-      return isInPolygon(feature, filter.value);
+      const point = [data[lng.fieldIdx], data[lat.fieldIdx]];
+      return isInPolygon(point, filter.value);
     default:
       return true;
   }
@@ -524,8 +532,7 @@ export function isInRange(val, domain) {
  */
 export function isInPolygon(point, polygon) {
   const convertedPoint = turfPoint(point);
-  const convertedPolygon = turfPolygon(polygon.geometry.coordinates);
-  const present = booleanWithin(convertedPoint, convertedPolygon);
+  const present = booleanWithin(convertedPoint, polygon);
   return present;
 }
 
@@ -565,6 +572,7 @@ export function getTimeWidgetHintFormatter(domain) {
  * @param {*} value - filter value
  * @returns {boolean} whether filter is value
  */
+/* eslint-disable complexity */
 export function isValidFilterValue({type, value}) {
   if (!type) {
     return false;
@@ -591,6 +599,7 @@ export function isValidFilterValue({type, value}) {
       return true;
   }
 }
+/* eslint-enable complexity */
 
 export function getFilterPlot(filter, allData) {
   if (filter.plotType === PLOT_TYPES.histogram || !filter.yAxis) {

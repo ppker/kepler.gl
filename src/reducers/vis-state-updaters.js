@@ -41,7 +41,8 @@ import {
   getFilterProps,
   getFilterPlot,
   getDefaultFilterPlotType,
-  filterData
+  filterData,
+  updatePolygonFilter
 } from 'utils/filter-utils';
 import {createNewDataEntry} from 'utils/dataset-utils';
 
@@ -195,44 +196,6 @@ function updateStateWithLayerAndData(state, {layerData, layer, idx}) {
   };
 }
 
- /**
-  * Update layer base config: dataId, label, column, isVisible
-  * @memberof visStateUpdaters
-  * @param {Object} state `visState`
-  * @param {Object} action action
-  * @param {Object} action.oldLayer layer to be updated
-  * @param {Object} action.newConfig new config
-  * @returns {Object} nextState
-  */
-export function layerConfigChangeUpdater(state, action) {
-  const {oldLayer} = action;
-  const idx = state.layers.findIndex(l => l.id === oldLayer.id);
-  const props = Object.keys(action.newConfig);
-  const newLayer = oldLayer.updateLayerConfig(action.newConfig);
-  if (newLayer.shouldCalculateLayerData(props)) {
-    const oldLayerData = state.layerData[idx];
-    const {layerData, layer} = calculateLayerData(
-      newLayer,
-      state,
-      oldLayerData,
-      {sameData: true}
-    );
-    return updateStateWithLayerAndData(state, {layerData, layer, idx});
-  }
-
-  let newState = state;
-  if ('isVisible' in action.newConfig && state.splitMaps.length) {
-    newState = {
-      ...state,
-      splitMaps: action.newConfig.isVisible ?
-        addNewLayersToSplitMap(state.splitMaps, newLayer) :
-        removeLayerFromSplitMaps(state.splitMaps, newLayer)
-    };
-  }
-
-  return updateStateWithLayerAndData(newState, {layer: newLayer, idx});
-}
-
 function addOrRemoveTextLabels(newFields, textLabel) {
   let newTextLabel = textLabel.slice();
 
@@ -275,7 +238,7 @@ function updateTextLabelPropAndValue(idx, prop, value, textLabel) {
 
 function getFilterAndLayerByFeatureId(state, featureId) {
   const filter = state.filters.find(f =>
-    f.type === FILTER_TYPES.polygon && f.value.id === featureId
+    f.type === FILTER_TYPES.polygon && f.feature.id === featureId
   );
 
   return {
@@ -301,6 +264,66 @@ function removeFeatureFilter(state, filter, dataId) {
   };
 
   return updateAllLayerDomainData(newState, dataId);
+}
+
+// function applyFilter(state, dataId, filters, filter) {
+//   const {allData} = state.datasets[dataId];
+//
+//   let newState = {
+//     ...state,
+//     // setting fitlers
+//     filters,
+//     // updating datasets
+//     datasets: {
+//       ...state.datasets,
+//       [dataId]: {
+//         ...state.datasets[dataId],
+//         ...filterData(allData, dataId, filters, state.layers)
+//       }
+//     }
+//   };
+//
+//   newState = updateAllLayerDomainData(newState, dataId, filter);
+//
+//   return newState;
+// }
+
+/**
+ * Update layer base config: dataId, label, column, isVisible
+ * @memberof visStateUpdaters
+ * @param {Object} state `visState`
+ * @param {Object} action action
+ * @param {Object} action.oldLayer layer to be updated
+ * @param {Object} action.newConfig new config
+ * @returns {Object} nextState
+ */
+export function layerConfigChangeUpdater(state, action) {
+  const {oldLayer} = action;
+  const idx = state.layers.findIndex(l => l.id === oldLayer.id);
+  const props = Object.keys(action.newConfig);
+  const newLayer = oldLayer.updateLayerConfig(action.newConfig);
+  if (newLayer.shouldCalculateLayerData(props)) {
+    const oldLayerData = state.layerData[idx];
+    const {layerData, layer} = calculateLayerData(
+      newLayer,
+      state,
+      oldLayerData,
+      {sameData: true}
+    );
+    return updateStateWithLayerAndData(state, {layerData, layer, idx});
+  }
+
+  let newState = state;
+  if ('isVisible' in action.newConfig && state.splitMaps.length) {
+    newState = {
+      ...state,
+      splitMaps: action.newConfig.isVisible ?
+        addNewLayersToSplitMap(state.splitMaps, newLayer) :
+        removeLayerFromSplitMaps(state.splitMaps, newLayer)
+    };
+  }
+
+  return updateStateWithLayerAndData(newState, {layer: newLayer, idx});
 }
 
 export function layerTextLabelChangeUpdater(state, action) {
@@ -1340,15 +1363,57 @@ export function updateAllLayerDomainData(state, dataId, newFilter) {
  * @return {Object} nextState
  */
 export function setFeaturesUpdater(state, {features = []}) {
-  // TODO: retrieve current feature it from state
-  // TODO: update filters if exists
-  return {
+
+  let newState = {
     ...state,
     editor: {
       ...state.editor,
       features
     }
   };
+
+  // Retrieve existing feature
+  const {selectedFeature} = state.editor;
+
+  if (!selectedFeature) {
+    return newState;
+  }
+
+  // retrieve existing filter
+  const {filter, layer} = getFilterAndLayerByFeatureId(newState, selectedFeature.id);
+
+  if (!(filter && layer)) {
+    return newState;
+  }
+
+  const {dataId} = layer.config;
+
+  // Update filter polygon property with new feature
+  const newFilter = updatePolygonFilter(
+    filter,
+    features.find(f => f.id === selectedFeature.id),
+    layer
+  );
+
+  const newFilters = state.filters.map(f => f.type === FILTER_TYPES.polygon && f.feature.id === selectedFeature.id ? newFilter : f);
+
+  const {allData} = state.datasets[dataId];
+
+  newState = {
+    ...state,
+    // setting filters
+    filters: newFilters,
+    // updating datasets
+    datasets: {
+      ...state.datasets,
+      [dataId]: {
+        ...state.datasets[dataId],
+        ...filterData(allData, dataId, newFilters, state.layers)
+      }
+    }
+  };
+
+  return updateAllLayerDomainData(newState, dataId, newFilter);
 }
 
 /**
@@ -1408,9 +1473,7 @@ export function deleteFeatureUpdater(state, {payload: featureId}) {
 export function togglePolygonFilterUpdater(state, payload) {
   const {layer, featureId} = payload;
   const {dataId} = layer.config;
-  const filter = state.filters.find(f =>
-    f.type === FILTER_TYPES.polygon && f.value.id === featureId
-  );
+  const {filter} = getFilterAndLayerByFeatureId(state, featureId);
 
   // create a new filter
   if (!filter) {
@@ -1418,13 +1481,14 @@ export function togglePolygonFilterUpdater(state, payload) {
     const currentFeature = editorFeatures.find(feat => feat.id === featureId);
 
     const polygonFilter = generatePolygonFilter(layer, currentFeature);
+    const {allData} = state.datasets[dataId];
+
     const newFilters = [
       ...state.filters,
       polygonFilter
     ];
 
-    const {allData} = state.datasets[polygonFilter.dataId];
-    let newState = {
+    const newState = {
       ...state,
       // setting fitlers
       filters: newFilters,
@@ -1438,9 +1502,7 @@ export function togglePolygonFilterUpdater(state, payload) {
       }
     };
 
-    newState = updateAllLayerDomainData(newState, dataId, polygonFilter);
-
-    return newState;
+    return updateAllLayerDomainData(newState, dataId, polygonFilter);
   }
 
   removeFeatureFilter(state, filter, dataId);

@@ -93,7 +93,7 @@ const actionHandler = {
 
   [ActionTypes.TOGGLE_POLYGON_FILTER]: visStateUpdaters.togglePolygonFilterUpdater,
 
-  [ActionTypes.SET_SELECTED_FEATURE]: visStateUpdaters.setSelectedFeatureUpdater,
+  [ActionTypes.SET_SELECTED_FEATURE]: visStateUpdaters.setSelectedFeatureUpdater
 };
 
 // construct vis-state reducer
