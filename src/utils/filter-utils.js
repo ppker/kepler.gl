@@ -102,16 +102,6 @@ export const TIME_ANIMATION_SPEED = [
   }
 ];
 
-export function generateFilter(options) {
-  const {dataId, ...restOptions} = options;
-  const filter = getDefaultFilter(dataId);
-
-  return {
-    ...filter,
-    ...restOptions
-  };
-}
-
 export function getDefaultFilter(dataId) {
   return {
     // link to dataset Id
@@ -145,8 +135,10 @@ export function updatePolygonFilter(filter, feature, layer) {
   return {
     ...filter,
     // We store the geo-json into value field
+    fixedDomain: true,
     value: turfPolygon(feature.geometry.coordinates),
     layerId: layer.id,
+    name: feature.id,
     feature
   }
 }
@@ -260,8 +252,6 @@ export function validateFilter(filter, dataId) {
  * @returns {Object[]} data
  * @returns {Number[]} filteredIndex
  */
-
-// TODO: update filterData to apply polygons
 export function filterData(data, dataId, filters, layers = []) {
   if (!data || !dataId) {
     // why would there not be any data? are we over doing this?
@@ -593,7 +583,7 @@ export function isValidFilterValue({type, value}) {
       return Boolean(value.length);
 
     case FILTER_TYPES.polygon:
-      return value && value.geometry && value.geometry.coordinates;
+      return Boolean(value && value.geometry && value.geometry.coordinates);
 
     default:
       return true;
