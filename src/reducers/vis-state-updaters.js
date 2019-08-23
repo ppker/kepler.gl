@@ -1401,7 +1401,7 @@ export function setFeaturesUpdater(state, {features = []}) {
  * @param {[Object]} features to store
  * @return {Object} nextState
  */
-export const setSelectedFeatureUpdater = (state, {payload: selectedFeatureId}) => ({
+export const setSelectedFeatureUpdater = (state, {selectedFeatureId}) => ({
   ...state,
   editor: {
     ...state.editor,

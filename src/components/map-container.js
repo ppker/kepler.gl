@@ -400,8 +400,8 @@ export default function MapContainerFactory(MapTooltip, MapControl) {
                 isEnabled={isEdit}
                 layers={layers}
                 filters={this.polygonFilters(this.props)}
-                onDeleteFeature={uiStateActions.deleteFeature}
-                onSelect={uiStateActions.setSelectedFeature}
+                onDeleteFeature={visStateActions.deleteFeature}
+                onSelect={visStateActions.setSelectedFeature}
                 onUpdate={visStateActions.setFeatures}
                 style={{zIndex: isEdit ? 0 : -1}}
                 onTogglePolygonFilterUpdater={visStateActions.togglePolygonFilter}
