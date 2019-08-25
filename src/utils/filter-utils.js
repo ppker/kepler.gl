@@ -131,14 +131,11 @@ export function getDefaultFilter(dataId) {
 }
 
 /* Polygon Filter Helpers */
-export function updatePolygonFilter(filter, feature, layer) {
+export function updatePolygonFilter(filter, feature) {
   return {
     ...filter,
     // We store the geo-json into value field
-    fixedDomain: true,
     value: turfPolygon(feature.geometry.coordinates),
-    layerId: layer.id,
-    name: feature.id,
     feature
   }
 }
@@ -147,8 +144,10 @@ export function generatePolygonFilter(layer, feature) {
   return updatePolygonFilter({
     ...getDefaultFilter(layer.config.dataId),
     fixedDomain: true,
-    type: FILTER_TYPES.polygon
-  }, feature, layer);
+    type: FILTER_TYPES.polygon,
+    name: feature.id,
+    layerId: layer.id
+  }, feature);
 }
 /* Polygon Filter Helpers */
 
