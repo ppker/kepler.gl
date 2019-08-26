@@ -267,6 +267,7 @@ export default class TripLayer extends Layer {
   }
 
   renderLayer({data, idx, mapState, animationConfig}) {
+    console.log(animationConfig.domain[0])
     const {lightSettings} = this.meta;
     const zoomFactor = this.getZoomFactor(mapState);
     const {visConfig} = this.config;
@@ -284,14 +285,11 @@ export default class TripLayer extends Layer {
         colorField: this.config.colorField,
         colorRange: visConfig.colorRange,
         colorScale: this.config.colorScale
-      },
-      getTrailLength: {
-        trailLength: visConfig.trailLength
-      },
-      getWidth: {
-        sizeField: this.config.sizeField,
-        sizeRange: visConfig.sizeRange
       }
+      // getWidth: {
+      //   sizeField: this.config.sizeField,
+      //   sizeRange: visConfig.sizeRange
+      // }
     };
 
     return [
@@ -301,14 +299,14 @@ export default class TripLayer extends Layer {
         idx,
         data: data.data,
         getPath: data.getPath,
-        getTimestamps: data.getTimestamps,
+        getTimestamps: d => data.getTimestamps(d).map(ts => ts - animationConfig.domain[0]) ,
         getColor: data.getColor,
-        opacity: 0.3,
-        getWidth: 2,
+        // opacity: 0.3,
+        getWidth: d => 4,
         widthMinPixels: 2,
         rounded: true,
         trailLength: visConfig.trailLength,
-        currentTime: animationConfig.currentTime,
+        currentTime: animationConfig.currentTime - animationConfig.domain[0],
         lightSettings,
         updateTriggers
       })

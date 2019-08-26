@@ -177,7 +177,7 @@ export const INITIAL_VIS_STATE = {
     domain: [null, null],
     currentTime: 0,
     duration: 10,
-    speed: 1
+    speed: 0.03
   }
 };
 
