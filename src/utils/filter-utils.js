@@ -79,7 +79,8 @@ export const FILTER_COMPONENTS = {
   [FILTER_TYPES.select]: 'SingleSelectFilter',
   [FILTER_TYPES.multiSelect]: 'MultiSelectFilter',
   [FILTER_TYPES.timeRange]: 'TimeRangeFilter',
-  [FILTER_TYPES.range]: 'RangeFilter'
+  [FILTER_TYPES.range]: 'RangeFilter',
+  [FILTER_TYPES.polygon]: 'PolygonFilter'
 };
 
 export const BASE_SPEED = 600;
@@ -145,7 +146,7 @@ export function generatePolygonFilter(layer, feature) {
     ...getDefaultFilter(layer.config.dataId),
     fixedDomain: true,
     type: FILTER_TYPES.polygon,
-    name: feature.id,
+    name: layer.config.label,
     layerId: layer.id
   }, feature);
 }

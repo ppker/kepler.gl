@@ -130,6 +130,7 @@ export default function MapContainerFactory(MapTooltip, MapControl) {
       }), {})
     );
 
+
     filtersSelector = props => props.filters;
     polygonFilters = createSelector(
       this.filtersSelector,
