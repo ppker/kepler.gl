@@ -60,7 +60,7 @@ test('#uiStateReducerFactory', t => {
   t.end();
 });
 
-test.only('#uiStateReducer -> TOGGLE_SIDE_PANEL', t => {
+test('#uiStateReducer -> TOGGLE_SIDE_PANEL', t => {
 
   const newReducer = reducer(INITIAL_UI_STATE, toggleSidePanel('foo'));
 

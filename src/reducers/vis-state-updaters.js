@@ -248,7 +248,6 @@ function getFiltersIdxByFeatureId(state, featureId) {
   }, []);
 }
 
-// TODO: modify this to accept filters and dataIds
 function removeFeatureFilters(state, filtersIdx) {
   const newFilters = state.filters.filter((f, index) => !filtersIdx.includes(index));
 
@@ -1385,13 +1384,13 @@ export function setFeaturesUpdater(state, {features = []}) {
 
   const filtersIdx = getFiltersIdxByFeatureId(newState, selectedFeature.id);
 
-  const datasetsIds = filtersIdx.map(idx => {
-    const filter = state.filters[idx];
-    const layer = state.layers.find(l => l.id === filter.layerId);
-    return layer.config.dataId;
-  });
+  // no filters found
+  if (filtersIdx.length === 0) {
+    return newState;
+  }
 
-  const newDatasets = datasetsIds.reduce((acc, dataId) => {
+  const datasets = filtersIdx.reduce((acc, idx) => {
+    const dataId = state.filters[idx].dataId;
     return {
       ...acc,
       [dataId]: {
@@ -1399,22 +1398,18 @@ export function setFeaturesUpdater(state, {features = []}) {
         ...filterData(state.datasets[dataId].allData, dataId, newFilters, state.layers)
       }
     }
-  }, {});
+  }, state.datasets);
 
   newState = {
     ...state,
     // setting filters
     filters: newFilters,
     // updating datasets
-    datasets: {
-      ...state.datasets,
-      ...newDatasets
-    }
+    datasets
   };
 
-  return newFilters.reduce((acc, f) =>
-      updateAllLayerDomainData(acc, Object.keys(newDatasets), f)
-    , newState);
+  return updateAllLayerDomainData(newState, Object.keys(datasets));
+
 }
 
 /**
@@ -1439,7 +1434,7 @@ export const setSelectedFeatureUpdater = (state, {selectedFeatureId}) => ({
  * @param {string} selectedFeatureId feature to delete
  * @return {Object} nextState
  */
-export function deleteFeatureUpdater(state, {payload: featureId}) {
+export function deleteFeatureUpdater(state, {featureId}) {
   if (!featureId) {
     return state;
   }
@@ -1449,7 +1444,10 @@ export function deleteFeatureUpdater(state, {payload: featureId}) {
   // modify editor object
   const newEditor = {
     ...editor,
-    features: editor.features.filter(f => f.id !== featureId)
+    features: editor.features.filter(f => f.id !== featureId),
+    selectedFeature: {
+      id: null
+    }
   };
 
   const filtersIdx = getFiltersIdxByFeatureId(state, featureId);
@@ -1467,7 +1465,7 @@ export function deleteFeatureUpdater(state, {payload: featureId}) {
  * @memberof visStateUpdaters
  * @param state
  * @param {Object} payload
- * @param {Object} payload.feature
+ * @param {string} payload.featureId
  * @param {Object} payload.layer
  * @return {Object} nextState
  */
@@ -1475,11 +1473,10 @@ export function togglePolygonFilterUpdater(state, payload) {
   const {layer, featureId} = payload;
   const {dataId} = layer.config;
   const filtersIdx = getFiltersIdxByFeatureId(state, featureId);
-
   const currentFilterIdx = filtersIdx.find(idx => state.filters[idx].layerId === layer.id);
 
   // if no filters or didn't find a filter with the given feature and layer, create new one
-  if (filtersIdx.length === 0 || !currentFilterIdx) {
+  if (filtersIdx.length === 0 || currentFilterIdx === undefined) {
     const {features: editorFeatures} = state.editor;
     const currentFeature = editorFeatures.find(feat => feat.id === featureId);
 
