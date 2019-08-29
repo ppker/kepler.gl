@@ -2690,7 +2690,7 @@ test('#visStateReducer -> POLYGON: Add/remove new polygon feature and set it as 
       }
     },
     layers: [],
-    layerData: [],
+    layerData: []
   };
 
   let newReducer = reducer(state, VisStateActions.addLayer());
@@ -2723,7 +2723,7 @@ test('#visStateReducer -> POLYGON: Add/remove new polygon feature and set it as 
     enlarged: false,
     isAnimating: false,
     speed: 1,
-    name: 'bf5be428-f522-4a52-8ea5-3e90e86aad51',
+    name: 'new layer',
     type: 'polygon',
     fieldIdx: null,
     domain: null,

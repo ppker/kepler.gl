@@ -22,4 +22,6 @@ const PolygonFilter = React.memo(({dataset, filter, setFilter}) => (
   </SidePanelSection>
 ));
 
+PolygonFilter.displayName = 'PolygonFilter';
+
 export default PolygonFilter;
